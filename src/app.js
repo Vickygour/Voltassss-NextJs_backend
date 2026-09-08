@@ -42,13 +42,13 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // Generic rate limiter for all API routes (auth routes have a stricter one on top of this)
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 300,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use("/api", apiLimiter);
+// const apiLimiter = rateLimit({
+//   windowMs: 15 * 60 * 1000,
+//   max: 300,
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
+// app.use("/api", apiLimiter);
 
 // --- Routes -----------------------------------------------------------------
 app.get("/", (req, res) => {
