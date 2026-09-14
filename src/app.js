@@ -8,6 +8,7 @@ const rateLimit = require("express-rate-limit");
 const mongoSanitize = require("express-mongo-sanitize");
 const hpp = require("hpp");
 
+const connectDB = require("./config/db"); // 1. DB connection helper import karein
 const routes = require("./routes");
 const { notFound, errorHandler } = require("./middleware/error.middleware");
 
@@ -51,7 +52,7 @@ if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }
 
-// Rate Limiting (Only active when not running serverless or in dev mode to prevent timeouts)
+// Rate Limiting
 if (process.env.NODE_ENV !== "production") {
   const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -62,7 +63,7 @@ if (process.env.NODE_ENV !== "production") {
   app.use("/api", apiLimiter);
 }
 
-// --- Routes -----------------------------------------------------------------
+// --- Health Check Routes (Without DB middleware) ------------------------------
 app.get("/", (req, res) => {
   res.status(200).json({ success: true, message: "Voltra API is running" });
 });
@@ -71,6 +72,22 @@ app.get("/api/v1/health", (req, res) => {
   res.status(200).json({ success: true, message: "OK", timestamp: new Date().toISOString() });
 });
 
+// --- 2. Database Connection Middleware (MUST BE BEFORE API ROUTES) ------------
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error("Database connection failure in middleware:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Database connection failed",
+      error: err.message,
+    });
+  }
+});
+
+// --- API Routes ---------------------------------------------------------------
 app.use("/api/v1", routes);
 
 // --- 404 + error handling ---------------------------------------------------
