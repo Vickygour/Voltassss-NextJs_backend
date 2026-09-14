@@ -5,9 +5,15 @@ const connectDB = require("./src/config/db");
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
-  await connectDB();
+  try {
+    // Database connection attempt
+    await connectDB();
+  } catch (err) {
+    console.error("Database connection failed:", err.message);
+  }
 
-  const server = app.listen(PORT, () => {
+  // 0.0.0.0 hostname missing hone par Railway access nahi kar pata
+  const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`Voltra API running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`);
   });
 
@@ -18,6 +24,4 @@ const startServer = async () => {
   });
 };
 
-
 startServer();
-
